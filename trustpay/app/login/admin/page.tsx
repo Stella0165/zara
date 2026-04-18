@@ -2,8 +2,16 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push("/dashboard");
+  };
+
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -61,7 +69,7 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" className="btn-primary">
-              Sign in
+                Login
             </button>
           </form>
 

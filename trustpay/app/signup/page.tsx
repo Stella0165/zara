@@ -3,9 +3,26 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const handleSignup = async (e: any) => {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+
+    const email = form.email.value;
+    const password = form.password.value;
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("Account created!");
+    } catch (error) {
+      alert("Fail to create account");
+    }
+  };
 
   return (
     <div className="page-container">
@@ -24,11 +41,12 @@ export default function SignupPage() {
           <h1 className="title">SIGN UP PAGE</h1>
           <p className="subtitle">Fill in registration details.</p>
 
-          <form className="flex flex-col gap-2">
+          <form className="flex flex-col gap-2" onSubmit={handleSignup}>
             <label htmlFor="email" className="text-sm font-medium block">
               Email
             </label>
             <input
+              name="email"
               type="email"
               id="email"
               placeholder="Enter email address"
@@ -41,6 +59,7 @@ export default function SignupPage() {
             </label>
             <div className="relative">
               <input
+                name="password"
                 type={showPassword ? "text" : "password"}
                 id="password"
                 placeholder="Enter password"

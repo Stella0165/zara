@@ -2,8 +2,29 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleLogin = async (e: any) => {
+  e.preventDefault();
+
+  const form = e.currentTarget;
+
+  const email = form.email.value;
+  const password = form.password.value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    router.push("/dashboard");
+  } catch (error) {
+    alert("Fail to login");
+  }
+};
+
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -23,12 +44,13 @@ export default function LoginPage() {
           <h1 className="title">WELCOME</h1>
           <p className="subtitle">Login with your details.</p>
 
-          <form className="flex flex-col gap-2">
+          <form className="flex flex-col gap-2" onSubmit={handleLogin}>
             <label htmlFor="email" className="text-sm font-medium block">
               Email
             </label>
 
             <input
+              name="email"
               type="email"
               id="email"
               placeholder="Enter your email"
@@ -47,6 +69,7 @@ export default function LoginPage() {
             </label>
             <div className="password">
               <input
+                name="password"
                 type={showPassword ? "text" : "password"}
                 id="password"
                 placeholder="Enter your password"
@@ -62,7 +85,7 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" className="btn-primary">
-              Sign in
+              Login in
             </button>
           </form>
 
