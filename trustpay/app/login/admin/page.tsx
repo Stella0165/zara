@@ -3,14 +3,28 @@ import Link from "next/link";
 import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push("/dashboard");
-  };
+  const handleLogin = async (e: any) => {
+  e.preventDefault();
+
+  const form = e.currentTarget;
+
+  const email = form.email.value;
+  const password = form.password.value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    router.push("/dashboard/user");
+  } catch (error) {
+    alert("Fail to login");
+  }
+};
+
 
   const [showPassword, setShowPassword] = useState(false);
 
