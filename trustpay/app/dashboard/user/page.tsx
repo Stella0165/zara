@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import "./dashboard_user.css";
 
 type Transaction = {
   id: number,
@@ -71,13 +72,13 @@ export default function UserDashboard() {
   return (
     <div className="dashboard-user">
 
-      <h1 className="text-3xl font-bold mb-4">
+      <h1 className="dashboard-title">
         TrustPay Transaction View
       </h1>
 
       <button
         onClick={() => setShowForm(true)}
-        className="bg-blue-600 text-white px-4 py-2 rounded mb-6"
+        className="btn-primary"
       >
         + Add New Transaction
       </button>
@@ -89,7 +90,7 @@ export default function UserDashboard() {
           </p>
 
       ) : (
-        <div className="grid gap-3">
+        <div className="transaction-list">
 
           {transactions.map((tx) => (
             <div key={tx.id} className="border p-4 rounded">
@@ -117,29 +118,36 @@ export default function UserDashboard() {
 
       {/* form */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded w-125">
+        <div className="modal-bg">
+          <div className="modal-box">
 
             <h2 className="text-xl font-bold mb-4">
               New Transaction
             </h2>
 
+            <button
+              onClick={() => setShowForm(false)}
+              className="absolute top-3 right-3 text-black-600 hover:text-black text-xl"
+            >
+              x
+            </button>
+
             <input
-              className="Name"
+              className="input"
               placeholder="Recipient Name"
               value={toName}
               onChange={(e) => setToName(e.target.value)}
             />
 
             <input
-              className="Phone"
+              className="input"
               placeholder="Phone Number"
               value={toPhone}
               onChange={(e) => setToPhone(e.target.value)}
             />
 
             <input
-              className="Amount"
+              className="input"
               placeholder="Amount($)"
               type="number"
               value={amount}
