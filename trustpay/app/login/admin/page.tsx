@@ -8,6 +8,13 @@ export default function LoginPage() {
 
   return (
     <div className="page-container">
+      <div className="image-section">
+        <img
+          src="/title.png"
+          alt="signup illustration"
+          className="w-full h-full object-cover"
+        />
+      </div>
       
       <div className="form-right">
         <div className="form">
@@ -37,7 +44,7 @@ export default function LoginPage() {
             <label htmlFor="password" className="text-sm font-medium block">
               Password
             </label>
-            <div className="relative">
+            <div className="password">
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
@@ -67,13 +74,6 @@ export default function LoginPage() {
 
         </div>
      </div>
-     <div className="image-section">
-        <img
-          src="/title.png"
-          alt="signup illustration"
-          className="w-full h-full object-cover"
-        />
-      </div>
 
     </div>
   );
