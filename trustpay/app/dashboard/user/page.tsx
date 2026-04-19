@@ -22,15 +22,23 @@ export default function UserDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const handleSubmit = async () => {
-    const res = await fetch("/api/transfer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        toName,
-        toPhone,
-        amount: Number(amount),
-      }),
-    });
+    try {
+      console.log("Transfer clicked"); 
+      const res = await fetch("/api/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toName,
+          toPhone,
+          amount: Number(amount),
+        }),
+      });
+      
+      if (!res.ok) {
+      console.error("Error:", res.status);
+      alert("Transaction failed");
+      return;
+    };
 
     const result = await res.json();
 
@@ -47,7 +55,7 @@ export default function UserDashboard() {
     }
 
     if (status === "NORMAL") {
-      alert("Transaction Completed!");
+      alert("Transaction Completed.");
     }
 
     // Save transaction
@@ -67,6 +75,10 @@ export default function UserDashboard() {
     setToName("");
     setToPhone("");
     setAmount("");
+  } catch (error) {
+      console.error("Unexpected error:", error);
+      alert("Something went wrong");
+    }
   };
 
   return (
@@ -155,15 +167,19 @@ export default function UserDashboard() {
             />
 
               <button
-                onClick={handleSubmit}
+                type="button"
+                onClick={() => {
+                  console.log("TRANSFER BUTTON CLICKED");
+                  handleSubmit();
+                }}
                 className="bg-blue-600 text-white px-3 py-1 rounded"
               >
                 Transfer
               </button>
-
             </div>
           </div>
       )}
+      
     </div>
   );
 }
