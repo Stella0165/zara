@@ -87,13 +87,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-bottom">
-            Don't have an account?{" "}
-            <Link href="/" className="text-blue-500 hover:underline">
-              Sign up page
-            </Link>
-          </p>
-
         </div>
      </div>
 
