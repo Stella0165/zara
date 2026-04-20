@@ -1,0 +1,5 @@
+Analyze this transaction:
+
+recipient_name: Ali Amir
+recipient_phone: 0112233445
+amount: 1000
