@@ -8,9 +8,18 @@ export async function POST(req) {
 
     const { toName, toPhone, amount } = body;
 
+    // required field not fully fill
     if (!toName || !toPhone || !amount) {
       return Response.json(
-        { status: "FLAGGED", reason: "Missing required fields' details" },
+        { status: "Missing required fields' details" },
+        { status: 400 }
+      );
+    }
+
+    // invalid phone number format
+    if (toPhone.length <9) {
+      return Response.json(
+        { status: "Invalid phone number format" },
         { status: 400 }
       );
     }
@@ -65,7 +74,7 @@ export async function POST(req) {
     console.error(error);
 
     return Response.json(
-      { status: "FLAGGED", error: "Error" },
+      { status: "FLAGGED", error: "Server error" },
       { status: 500 }
     );
   }
