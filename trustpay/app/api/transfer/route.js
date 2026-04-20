@@ -1,6 +1,5 @@
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebaseAdmin";
 import { collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
-
 import { fraudAgent } from "@/lib/ai";
 
 export const runtime = "nodejs";
@@ -65,7 +64,7 @@ export async function POST(req) {
       transactionId,
       toName,
       toPhone,
-      amount,
+      amount: Number(amount),
       status,
       timestamp: new Date(),
     });
@@ -78,19 +77,19 @@ export async function POST(req) {
       });
     }
 
-    const response = {
-      transactionId,
-      status,
-      recipient: toName,
-      phone: toPhone,
-      amount,
-      ai: aiResult,
-      timestamp: new Date().toISOString(),
-    };
+    // const response = {
+    //   transactionId,
+    //   status,
+    //   recipient: toName,
+    //   phone: toPhone,
+    //   amount,
+    //   ai: aiResult,
+    //   timestamp: new Date().toISOString(),
+    // };
 
-    if (status === "NORMAL") {
-      response.action = "email_sent";
-    }
+    // if (status === "NORMAL") {
+    //   response.action = "email_sent";
+    // }
 
     if (status === "SUSPICIOUS") {
       await addDoc(collection(db, "pendingTransactions"), {
@@ -98,23 +97,33 @@ export async function POST(req) {
         toPhone,
         amount,
         ai: aiResult,
-        timestamp: newDate(),
+        timestamp: new Date(),
       });
       
-      response.action = "sent_to_admin_review";
+      // response.action = "sent_to_admin_review";
     }
 
     if (status === "FLAGGED") {
-      response.action = "transaction_flagged";
+      // response.action = "transaction_flagged";
+      await setDoc(doc(db, "flaggedAccounts", toPhone), {
+        flagged: true,
+        timestamp: new Date(),
+      })
     }
 
-    return Response.json(response);
+    return Response.json ({
+      transactionId,
+      status,
+      ai: aiResult,
+    });
 
   } catch (error) {
-    console.error(error);
+    console.error(" TRANSFER CRASH:", error);
 
     return Response.json(
-      { error: "Server error" },
+      {
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

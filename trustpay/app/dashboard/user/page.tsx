@@ -13,6 +13,9 @@ type Transaction = {
 
 export default function UserDashboard() {
 
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
+
   const [showForm, setShowForm] = useState(false);
 
   const [toName, setToName] = useState("");
@@ -22,8 +25,33 @@ export default function UserDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const handleSubmit = async () => {
+    // validation for no input
+    if (!toName.trim() || !toPhone.trim() || !amount.trim()) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    // remove white spaces and check length
+    if (toPhone.replace(/\s/g, "").length < 9) {
+      alert("Phone number format wrong.")
+      return;
+    }
+
+    if (Number(amount) <= 0) {
+      alert("Transfer amount couldn't be zero.")
+      return;
+    }
+
     try {
-      console.log("Transfer clicked"); 
+      setShowForm(false);
+      setLoading(true);
+      setLoadingMessage("Processing transaction...");
+
+      setLoadingMessage("AI is analyzing transaction risk...");
+
+      // wait a while
+      await new Promise((r) => setTimeout(r, 500));
+    
       const res = await fetch("/api/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -33,51 +61,54 @@ export default function UserDashboard() {
           amount: Number(amount),
         }),
       });
-      
+
+      const result = await res.json();
+
+      setLoading(false);
+      setLoadingMessage("");
+
       if (!res.ok) {
-      console.error("Error:", res.status);
-      alert("Transaction failed");
-      return;
-    };
+        alert(result.error || "Transaction failed");
+        return;
+      }
 
-    const result = await res.json();
+      const status = result.status;
 
-    let status = result.status
+      if (status === "FLAGGED") {
+        alert(" Flagged account detected. Transaction rejected.");
+        return;
+      }
 
-    if (status === "FLAGGED") {
-      alert("Transaction rejected: This transaction account was flagged and not allowed to transfer."); 
+      if (status === "SUSPICIOUS") {
+        alert(" Transaction suspicious: Waiting admin to validate");
+      }
+
+      if (status === "NORMAL") {
+        alert("Transaction Completed!");
+      }
+
+      // Save transaction
+      setTransactions((prev) => [
+        {
+          id: Date.now(),
+          toName,
+          toPhone,
+          amount: Number(amount),
+          status,
+        },
+        ...prev,
+      ]);
+
+      // Reset the form
       setShowForm(false);
-      return;
-    }
-
-    if (status === "SUSPICIOUS") {
-      alert("Transaction suspicious: Waiting admin to validate");
-    }
-
-    if (status === "NORMAL") {
-      alert("Transaction Completed.");
-    }
-
-    // Save transaction
-    setTransactions((prev) => [
-      {
-        id: Date.now(),
-        toName,
-        toPhone,
-        amount: Number(amount),
-        status,
-      },
-      ...prev,
-    ]);
-
-    // Reset the form
-    setShowForm(false);
-    setToName("");
-    setToPhone("");
-    setAmount("");
-  } catch (error) {
-      console.error("Unexpected error:", error);
-      alert("Something went wrong");
+      setToName("");
+      setToPhone("");
+      setAmount("");
+    } catch (error) {
+      setLoading(false);
+      setLoadingMessage(""),
+      console.error(error);
+      alert("Error");
     }
   };
 
@@ -99,87 +130,83 @@ export default function UserDashboard() {
       {transactions.length === 0 ? (
         <p className="text-gray-500">
           No transaction record found.
-          </p>
+        </p>
 
-      ) : (
-        <div className="transaction-list">
+        ) : (
+          <div className="transaction-list">
 
-          {transactions.map((tx) => (
-            <div key={tx.id} className="border p-4 rounded">
-              <p>To: {tx.toName}</p>
-              <p>Phone: {tx.toPhone}</p>
-              <p>Amount: RM {tx.amount}</p>
+            {transactions.map((tx) => (
+              <div key={tx.id} className="border p-4 rounded">
+                <p>To: {tx.toName}</p>
+                <p>Phone: {tx.toPhone}</p>
+                <p>Amount: RM {tx.amount}</p>
 
-              <p
-                className={
-                  tx.status === "FLAGGED"
-                    ? "text-red-600"
-                    : tx.status === "SUSPICIOUS"
-                    ? "text-orange-500"
-                    : "text-green-600"
-                }
-              >
-                {tx.status}
-              </p>
-              
-            </div>
-          ))}
+                <p
+                  className={
+                    tx.status === "FLAGGED"
+                      ? "text-red-600"
+                      : tx.status === "SUSPICIOUS"
+                      ? "text-orange-500"
+                      : "text-green-600"
+                  }
+                >
+                  {tx.status}
+                </p>
+                
+              </div>
+            ))}
 
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* form */}
-      {showForm && (
-        <div className="modal-bg">
-          <div className="modal-box">
+        {/* form */}
+        {showForm && (
+          <div className="modal-bg">
+            <div className="modal-box">
 
-            <h2 className="text-xl font-bold mb-4">
-              New Transaction
-            </h2>
-
-            <button
-              onClick={() => setShowForm(false)}
-              className="absolute top-3 right-3 text-black-600 hover:text-black text-xl"
-            >
-              x
-            </button>
-
-            <input
-              className="input"
-              placeholder="Recipient Name"
-              value={toName}
-              onChange={(e) => setToName(e.target.value)}
-            />
-
-            <input
-              className="input"
-              placeholder="Phone Number"
-              value={toPhone}
-              onChange={(e) => setToPhone(e.target.value)}
-            />
-
-            <input
-              className="input"
-              placeholder="Amount($)"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
+              <h2 className="text-xl font-bold mb-4">
+                New Transaction
+              </h2>
 
               <button
-                type="button"
-                onClick={() => {
-                  console.log("TRANSFER BUTTON CLICKED");
-                  handleSubmit();
-                }}
-                className="bg-blue-600 text-white px-3 py-1 rounded"
+                onClick={() => setShowForm(false)}
+                className="absolute top-3 right-3 text-black-600 hover:text-black text-xl"
               >
-                Transfer
+                x
               </button>
+
+              <input
+                className="input"
+                placeholder="Recipient Name"
+                value={toName}
+                onChange={(e) => setToName(e.target.value)}
+              />
+
+              <input
+                className="input"
+                placeholder="Phone Number"
+                value={toPhone}
+                onChange={(e) => setToPhone(e.target.value)}
+              />
+
+              <input
+                className="input"
+                placeholder="Amount($)"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+
+                <button
+                  onClick={handleSubmit}
+                  className="bg-blue-600 text-white px-3 py-1 rounded"
+                >
+                  Transfer
+                </button>
+
+              </div>
             </div>
-          </div>
-      )}
-      
-    </div>
-  );
-}
+        )}
+      </div>
+    );
+  }
