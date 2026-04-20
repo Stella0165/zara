@@ -25,6 +25,8 @@ export default function UserDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const handleSubmit = async () => {
+
+    console.log("Button 'transfer' clicked");
     // validation for no input
     if (!toName.trim() || !toPhone.trim() || !amount.trim()) {
       alert("Please fill in all required fields.");
@@ -43,6 +45,8 @@ export default function UserDashboard() {
     }
 
     try {
+      console.log("Begin fetch");
+
       setShowForm(false);
       setLoading(true);
       setLoadingMessage("Processing transaction...");
@@ -62,55 +66,81 @@ export default function UserDashboard() {
         }),
       });
 
-      const result = await res.json();
-
-      setLoading(false);
-      setLoadingMessage("");
+      const text = await res.text();
+      console.log("RAW RESPONSE:", text);
 
       if (!res.ok) {
-        alert(result.error || "Transaction failed");
+        console.error("API ERROR:", text);
+        alert("Server error occurred");
         return;
       }
 
-      const status = result.status;
-
-      if (status === "FLAGGED") {
-        alert(" Flagged account detected. Transaction rejected.");
+      let result;
+      try {
+        result = JSON.parse(text); // 
+      } catch (e) {
+        console.error(" JSON PARSE FAILED");
+        alert("Server returned invalid response");
         return;
       }
 
-      if (status === "SUSPICIOUS") {
-        alert(" Transaction suspicious: Waiting admin to validate");
+      console.log(" PARSED RESULT:", result);
+
+      } catch (error) {
+        console.error(" ERROR:", error);
+        alert("Error");
       }
+    };
 
-      if (status === "NORMAL") {
-        alert("Transaction Completed!");
-      }
+  //     const result = await res.json();
 
-      // Save transaction
-      setTransactions((prev) => [
-        {
-          id: Date.now(),
-          toName,
-          toPhone,
-          amount: Number(amount),
-          status,
-        },
-        ...prev,
-      ]);
+  //     setLoading(false);
+  //     setLoadingMessage("");
 
-      // Reset the form
-      setShowForm(false);
-      setToName("");
-      setToPhone("");
-      setAmount("");
-    } catch (error) {
-      setLoading(false);
-      setLoadingMessage(""),
-      console.error(error);
-      alert("Error");
-    }
-  };
+  //     if (!res.ok) {
+  //       alert(result.error || "Transaction failed");
+  //       return;
+  //     }
+
+  //     const status = result.status;
+
+  //     if (status === "FLAGGED") {
+  //       alert(" Flagged account detected. Transaction rejected.");
+  //       return;
+  //     }
+
+  //     if (status === "SUSPICIOUS") {
+  //       alert(" Transaction suspicious: Waiting admin to validate");
+  //     }
+
+  //     if (status === "NORMAL") {
+  //       alert("Transaction Completed!");
+  //     }
+
+  //     // Save transaction
+  //     setTransactions((prev) => [
+  //       {
+  //         id: Date.now(),
+  //         toName,
+  //         toPhone,
+  //         amount: Number(amount),
+  //         status,
+  //       },
+  //       ...prev,
+  //     ]);
+
+  //     // Reset the form
+  //     setShowForm(false);
+  //     setToName("");
+  //     setToPhone("");
+  //     setAmount("");
+  //   } catch (error) {
+  //     setLoading(false);
+  //     setLoadingMessage(""),
+  //     console.error(error);
+  //     alert("Error");
+  //   }
+  // };
 
   return (
     <div className="dashboard-user">
@@ -198,8 +228,12 @@ export default function UserDashboard() {
               />
 
                 <button
-                  onClick={handleSubmit}
+                  type="button"
+                  onClick={() => {
+                    console.log("BUTTON PRESSED");
+                    handleSubmit();}}
                   className="bg-blue-600 text-white px-3 py-1 rounded"
+                  
                 >
                   Transfer
                 </button>

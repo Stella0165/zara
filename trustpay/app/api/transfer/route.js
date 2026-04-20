@@ -1,6 +1,15 @@
-import { db } from "@/lib/firebaseAdmin";
-import { collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
+import admin from "firebase-admin";
 import { fraudAgent } from "@/lib/ai";
+
+const serviceAccount = require("@/lib/serviceAccountKey.json");
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+
+const db = admin.firestore();
 
 export const runtime = "nodejs";
 
@@ -26,18 +35,19 @@ export async function POST(req) {
       );
     }
 
-    // check flagged account
-    const flaggedAcc = doc(db, "flaggedAccounts", toPhone);
-    const flaggedDetected = await getDoc(flaggedAcc);
+    const phone = toPhone.replace(/\s/g, "");
 
-    if (flaggedDetected.exists()) {
+    // check flagged account
+    const flaggedDoc = await db.collection("flaggedAccounts").doc(phone).get();
+
+    if (flaggedDoc.exists) {
       return Response.json({
         status: "FLAGGED",
         reason: "Account already flagged before",
       });
     }
 
-    const aiResult = await fraudAgent({
+    const aiResult = await fraudAgent.run ({
       name: toName,
       phone: toPhone,
       amount,
@@ -60,7 +70,7 @@ export async function POST(req) {
     const transactionId = "TN-" + Date.now();
 
     // save transaction
-    await addDoc(collection(db, "transactions"), {
+    await db.collection("transactions").add({
       transactionId,
       toName,
       toPhone,
@@ -71,7 +81,7 @@ export async function POST(req) {
 
     // save the new detected flagged account
     if (status === "FLAGGED") {
-      await setDoc(doc(db, "flaggedAccounts", toPhone), {
+      await db.collection("flaggedAccounts").doc(phone).set({
         flagged:true,
         timestamp: new Date(),
       });
@@ -92,7 +102,7 @@ export async function POST(req) {
     // }
 
     if (status === "SUSPICIOUS") {
-      await addDoc(collection(db, "pendingTransactions"), {
+      await db.collection("pendingTransactions").add({
         toName,
         toPhone,
         amount,
@@ -105,7 +115,7 @@ export async function POST(req) {
 
     if (status === "FLAGGED") {
       // response.action = "transaction_flagged";
-      await setDoc(doc(db, "flaggedAccounts", toPhone), {
+      await db.collection("flaggedAccounts").doc(phone).set({
         flagged: true,
         timestamp: new Date(),
       })
@@ -118,13 +128,13 @@ export async function POST(req) {
     });
 
   } catch (error) {
-    console.error(" TRANSFER CRASH:", error);
+  console.error("ERROR:", error);
 
-    return Response.json(
-      {
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
-  }
+  return Response.json(
+    {
+      error: error instanceof Error ? error.message : String(error),
+    },
+    { status: 500 }
+  );
+}
 }
