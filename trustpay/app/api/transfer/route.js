@@ -1,6 +1,9 @@
-export const runtime = "nodejs";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
 
 import { fraudAgent } from "@/lib/ai";
+
+export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
@@ -8,10 +11,10 @@ export async function POST(req) {
 
     const { toName, toPhone, amount } = body;
 
-    // required field not fully fill
+    // required field not fully fill (validation)
     if (!toName || !toPhone || !amount) {
       return Response.json(
-        { status: "Missing required fields' details" },
+        { error: "Missing required fields' details" },
         { status: 400 }
       );
     }
@@ -19,9 +22,20 @@ export async function POST(req) {
     // invalid phone number format
     if (toPhone.length <9) {
       return Response.json(
-        { status: "Invalid phone number format" },
+        { error: "Invalid phone number format" },
         { status: 400 }
       );
+    }
+
+    // check flagged account
+    const flaggedAcc = doc(db, "flaggedAccounts", toPhone);
+    const flaggedDetected = await getDoc(flaggedAcc);
+
+    if (flaggedDetected.exists()) {
+      return Response.json({
+        status: "FLAGGED",
+        reason: "Account already flagged before",
+      });
     }
 
     const aiResult = await fraudAgent({
@@ -44,7 +58,25 @@ export async function POST(req) {
       status = "FLAGGED";
     }
 
-    const transactionId = "TXN-" + Date.now();
+    const transactionId = "TN-" + Date.now();
+
+    // save transaction
+    await addDoc(collection(db, "transactions"), {
+      transactionId,
+      toName,
+      toPhone,
+      amount,
+      status,
+      timestamp: new Date(),
+    });
+
+    // save the new detected flagged account
+    if (status === "FLAGGED") {
+      await setDoc(doc(db, "flaggedAccounts", toPhone), {
+        flagged:true,
+        timestamp: new Date(),
+      });
+    }
 
     const response = {
       transactionId,
@@ -61,6 +93,14 @@ export async function POST(req) {
     }
 
     if (status === "SUSPICIOUS") {
+      await addDoc(collection(db, "pendingTransactions"), {
+        toName,
+        toPhone,
+        amount,
+        ai: aiResult,
+        timestamp: newDate(),
+      });
+      
       response.action = "sent_to_admin_review";
     }
 
@@ -74,7 +114,7 @@ export async function POST(req) {
     console.error(error);
 
     return Response.json(
-      { status: "FLAGGED", error: "Server error" },
+      { error: "Server error" },
       { status: 500 }
     );
   }

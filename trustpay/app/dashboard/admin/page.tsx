@@ -22,6 +22,12 @@ export default function UserDashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const handleSubmit = async () => {
+    // validation for no input
+    if (!toName || !toPhone || !amount) {
+      alert("Please fill in all required fields");
+      return;
+    }
+    
     const res = await fetch("/api/transfer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -33,6 +39,12 @@ export default function UserDashboard() {
     });
 
     const result = await res.json();
+
+    if (!res.ok) {
+      console.error("Server error:", result);
+      alert(result.error || "Transaction failed");
+      return;
+    }
 
     let status = result.status
 
