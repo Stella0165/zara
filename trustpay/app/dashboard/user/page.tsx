@@ -45,7 +45,6 @@ export default function UserDashboard() {
     }
 
     try {
-      console.log("Begin fetch");
 
       setShowForm(false);
       setLoading(true);
@@ -66,82 +65,56 @@ export default function UserDashboard() {
         }),
       });
 
-      const text = await res.text();
-      console.log("RAW RESPONSE:", text);
+      const result = await res.json();
+
+      setLoading(false);
+      setLoadingMessage("");
 
       if (!res.ok) {
-        console.error("API ERROR:", text);
-        alert("Server error occurred");
+        console.error("API ERROR:", result);
+        alert(result.error || "Server error occurred");
         return;
       }
 
-      let result;
-      try {
-        result = JSON.parse(text); // 
-      } catch (e) {
-        console.error(" JSON PARSE FAILED");
-        alert("Server returned invalid response");
-        return;
+      console.log("RESULT:", result);
+
+      const status = result.status;
+
+      setTransactions((prev) => [
+        {
+          id: Date.now(),
+          toName,
+          toPhone,
+          amount: Number(amount),
+          status,
+        },
+        ...prev,
+      ]);
+
+      if (status === "FLAGGED") {
+        alert("Flagged account detected");
       }
 
-      console.log(" PARSED RESULT:", result);
-
-      } catch (error) {
-        console.error(" ERROR:", error);
-        alert("Error");
+      if (status === "SUSPICIOUS") {
+        alert("Suspicious transaction");
       }
-    };
 
-  //     const result = await res.json();
+      if (status === "NORMAL") {
+        alert("Transaction Completed");
+      }
 
-  //     setLoading(false);
-  //     setLoadingMessage("");
+      setToName("");
+      setToPhone("");
+      setAmount("");
 
-  //     if (!res.ok) {
-  //       alert(result.error || "Transaction failed");
-  //       return;
-  //     }
-
-  //     const status = result.status;
-
-  //     if (status === "FLAGGED") {
-  //       alert(" Flagged account detected. Transaction rejected.");
-  //       return;
-  //     }
-
-  //     if (status === "SUSPICIOUS") {
-  //       alert(" Transaction suspicious: Waiting admin to validate");
-  //     }
-
-  //     if (status === "NORMAL") {
-  //       alert("Transaction Completed!");
-  //     }
-
-  //     // Save transaction
-  //     setTransactions((prev) => [
-  //       {
-  //         id: Date.now(),
-  //         toName,
-  //         toPhone,
-  //         amount: Number(amount),
-  //         status,
-  //       },
-  //       ...prev,
-  //     ]);
-
-  //     // Reset the form
-  //     setShowForm(false);
-  //     setToName("");
-  //     setToPhone("");
-  //     setAmount("");
-  //   } catch (error) {
-  //     setLoading(false);
-  //     setLoadingMessage(""),
-  //     console.error(error);
-  //     alert("Error");
-  //   }
-  // };
-
+    } catch (error) {
+      console.error("ERROR:", error);
+      setLoading(false);
+      setLoadingMessage("");
+      alert("Error occurred");
+    }
+  };
+  
   return (
     <div className="dashboard-user">
 
