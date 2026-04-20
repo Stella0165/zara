@@ -50,10 +50,9 @@ export default function UserDashboard() {
       setLoading(true);
       setLoadingMessage("Processing transaction...");
 
-      setLoadingMessage("AI is analyzing transaction risk...");
+      await new Promise((r) => setTimeout(r, 400));
 
-      // wait a while
-      await new Promise((r) => setTimeout(r, 500));
+      setLoadingMessage("AI is analyzing transaction risk...");
     
       const res = await fetch("/api/transfer", {
         method: "POST",
@@ -78,7 +77,14 @@ export default function UserDashboard() {
 
       console.log("RESULT:", result);
 
-      const status = result.status;
+      const status =
+        result.status === "approved"
+          ? "NORMAL"
+          : result.status === "pending"
+          ? "SUSPICIOUS"
+          : result.status === "rejected"
+          ? "FLAGGED"
+          : "SUSPICIOUS";
 
       setTransactions((prev) => [
         {
@@ -96,7 +102,7 @@ export default function UserDashboard() {
       }
 
       if (status === "SUSPICIOUS") {
-        alert("Suspicious transaction");
+        alert("Suspicious transaction detected, this transaction has been sent to admin for validation, we'll notify you once the validation completed.");
       }
 
       if (status === "NORMAL") {
@@ -210,6 +216,12 @@ export default function UserDashboard() {
                 >
                   Transfer
                 </button>
+
+                {loading && (
+                  <div className="p-3 bg-blue-100 text-blue-700 rounded mb-4">
+                    {loadingMessage}
+                  </div>
+                )}
 
               </div>
             </div>
