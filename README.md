@@ -6,10 +6,11 @@ An AI-powered banking security system that detects fraudulent transactions using
 This project is built for Track 5: Secure Digital (FinTech & Security), focusing on preventing digital fraud and improving cybersecurity as well as data privacy in financial transactions.
 
 # Tech stack
-- Google AI Studio (Prompt design & testing)
+- Google AI Studio (Prompt design and testing)
+- Google Antigravity (Development environment)
 - Gemini API (Fraud detection engine)
 - Next.js (Frontend + API routes)
-- Firebase (Authentication + Database)
+- Firebase (Authentication and Database)
 - Google Cloud Run (Deployment)
 
 # Ai development
