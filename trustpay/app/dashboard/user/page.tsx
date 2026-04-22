@@ -53,7 +53,7 @@ export default function UserDashboard() {
       await new Promise((r) => setTimeout(r, 400));
 
       setLoadingMessage("AI is analyzing transaction risk...");
-    
+
       const res = await fetch("/api/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -81,10 +81,10 @@ export default function UserDashboard() {
         result.status === "approved"
           ? "NORMAL"
           : result.status === "pending"
-          ? "SUSPICIOUS"
-          : result.status === "rejected"
-          ? "FLAGGED"
-          : "SUSPICIOUS";
+            ? "SUSPICIOUS"
+            : result.status === "rejected"
+              ? "FLAGGED"
+              : "SUSPICIOUS";
 
       setTransactions((prev) => [
         {
@@ -120,7 +120,7 @@ export default function UserDashboard() {
       alert("Error occurred");
     }
   };
-  
+
   return (
     <div className="dashboard-user">
 
@@ -141,91 +141,92 @@ export default function UserDashboard() {
           No transaction record found.
         </p>
 
-        ) : (
-          <div className="transaction-list">
+      ) : (
+        <div className="transaction-list">
 
-            {transactions.map((tx) => (
-              <div key={tx.id} className="border p-4 rounded">
-                <p>To: {tx.toName}</p>
-                <p>Phone: {tx.toPhone}</p>
-                <p>Amount: RM {tx.amount}</p>
+          {transactions.map((tx) => (
+            <div key={tx.id} className="border p-4 rounded">
+              <p>To: {tx.toName}</p>
+              <p>Phone: {tx.toPhone}</p>
+              <p>Amount: RM {tx.amount}</p>
 
-                <p
-                  className={
-                    tx.status === "FLAGGED"
-                      ? "text-red-600"
-                      : tx.status === "SUSPICIOUS"
+              <p
+                className={
+                  tx.status === "FLAGGED"
+                    ? "text-red-600"
+                    : tx.status === "SUSPICIOUS"
                       ? "text-orange-500"
                       : "text-green-600"
-                  }
-                >
-                  {tx.status}
-                </p>
-                
+                }
+              >
+                {tx.status}
+              </p>
+
+            </div>
+          ))}
+
+        </div>
+      )}
+
+      {/* form */}
+      {showForm && (
+        <div className="modal-bg">
+          <div className="modal-box">
+
+            <h2 className="text-xl font-bold mb-4">
+              New Transaction
+            </h2>
+
+            <button
+              onClick={() => setShowForm(false)}
+              className="absolute top-3 right-3 text-black-600 hover:text-black text-xl"
+            >
+              x
+            </button>
+
+            <input
+              className="input"
+              placeholder="Recipient Name"
+              value={toName}
+              onChange={(e) => setToName(e.target.value)}
+            />
+
+            <input
+              className="input"
+              placeholder="Phone Number"
+              value={toPhone}
+              onChange={(e) => setToPhone(e.target.value)}
+            />
+
+            <input
+              className="input"
+              placeholder="Amount($)"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+
+            <button
+              type="button"
+              onClick={() => {
+                console.log("BUTTON PRESSED");
+                handleSubmit();
+              }}
+              className="bg-blue-600 text-white px-3 py-1 rounded"
+
+            >
+              Transfer
+            </button>
+
+            {loading && (
+              <div className="p-3 bg-blue-100 text-blue-700 rounded mb-4">
+                {loadingMessage}
               </div>
-            ))}
+            )}
 
           </div>
-        )}
-
-        {/* form */}
-        {showForm && (
-          <div className="modal-bg">
-            <div className="modal-box">
-
-              <h2 className="text-xl font-bold mb-4">
-                New Transaction
-              </h2>
-
-              <button
-                onClick={() => setShowForm(false)}
-                className="absolute top-3 right-3 text-black-600 hover:text-black text-xl"
-              >
-                x
-              </button>
-
-              <input
-                className="input"
-                placeholder="Recipient Name"
-                value={toName}
-                onChange={(e) => setToName(e.target.value)}
-              />
-
-              <input
-                className="input"
-                placeholder="Phone Number"
-                value={toPhone}
-                onChange={(e) => setToPhone(e.target.value)}
-              />
-
-              <input
-                className="input"
-                placeholder="Amount($)"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log("BUTTON PRESSED");
-                    handleSubmit();}}
-                  className="bg-blue-600 text-white px-3 py-1 rounded"
-                  
-                >
-                  Transfer
-                </button>
-
-                {loading && (
-                  <div className="p-3 bg-blue-100 text-blue-700 rounded mb-4">
-                    {loadingMessage}
-                  </div>
-                )}
-
-              </div>
-            </div>
-        )}
-      </div>
-    );
-  }
+        </div>
+      )}
+    </div>
+  );
+}

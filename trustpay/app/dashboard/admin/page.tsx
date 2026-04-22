@@ -27,7 +27,7 @@ export default function UserDashboard() {
       alert("Please fill in all required fields");
       return;
     }
-    
+
     const res = await fetch("/api/transfer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -49,7 +49,7 @@ export default function UserDashboard() {
     let status = result.status
 
     if (status === "FLAGGED") {
-      alert("Transaction rejected: This transaction account was flagged and not allowed to transfer."); 
+      alert("Transaction rejected: This transaction account was flagged and not allowed to transfer.");
       setShowForm(false);
       return;
     }
@@ -99,7 +99,7 @@ export default function UserDashboard() {
       {transactions.length === 0 ? (
         <p className="text-gray-500">
           No transaction record found.
-          </p>
+        </p>
 
       ) : (
         <div className="transaction-list">
@@ -115,13 +115,13 @@ export default function UserDashboard() {
                   tx.status === "FLAGGED"
                     ? "text-red-600"
                     : tx.status === "SUSPICIOUS"
-                    ? "text-orange-500"
-                    : "text-green-600"
+                      ? "text-orange-500"
+                      : "text-green-600"
                 }
               >
                 {tx.status}
               </p>
-              
+
             </div>
           ))}
 
@@ -166,15 +166,15 @@ export default function UserDashboard() {
               onChange={(e) => setAmount(e.target.value)}
             />
 
-              <button
-                onClick={handleSubmit}
-                className="bg-blue-600 text-white px-3 py-1 rounded"
-              >
-                Transfer
-              </button>
+            <button
+              onClick={handleSubmit}
+              className="bg-blue-600 text-white px-3 py-1 rounded"
+            >
+              Transfer
+            </button>
 
-            </div>
           </div>
+        </div>
       )}
     </div>
   );
