@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
+const serviceAccount = 
 export async function POST(req) {
     try {
         const { recipient_name, recipient_phone, amount, flagged_database } =
