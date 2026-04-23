@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { setDoc, doc } from "firebase/firestore";
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,9 +18,20 @@ export default function SignupPage() {
     const password = form.password.value;
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      const user = userCredential.user;
+
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: email,
+        role: "user"
+      });
+
       alert("Account created!");
+
     } catch (error) {
+
       alert("Fail to create account");
     }
   };
@@ -34,10 +46,10 @@ export default function SignupPage() {
           className="w-full h-full object-cover"
         />
       </div>
-      
+
       <div className="form-right">
         <div className="form">
-          
+
           <h1 className="title">SIGN UP PAGE</h1>
           <p className="subtitle">Fill in registration details.</p>
 
@@ -64,8 +76,8 @@ export default function SignupPage() {
                 id="password"
                 placeholder="Enter password"
                 className="input-field"
-            />
-            <button
+              />
+              <button
                 type="button"
                 className="absolute right-2 top-1/3 -translate-y-1/2 text-gray-500"
                 onClick={() => setShowPassword(!showPassword)}
@@ -87,7 +99,7 @@ export default function SignupPage() {
           </p>
 
         </div>
-     </div>
+      </div>
 
     </div>
   );

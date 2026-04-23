@@ -5,25 +5,44 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { getDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async (e: any) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const form = e.currentTarget;
+    const form = e.currentTarget;
+    const email = form.email.value;
+    const password = form.password.value;
 
-  const email = form.email.value;
-  const password = form.password.value;
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    router.push("/dashboard/user");
-  } catch (error) {
-    alert("Fail to login");
-  }
-};
+      const user = userCredential.user;
+
+      const docRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        alert("User not found");
+        return;
+      }
+
+      const role = docSnap.data().role;
+
+      if (role === "admin") {
+        router.push("/dashboard/admin");
+      } else {
+        router.push("/dashboard/user");
+      }
+
+    } catch (error) {
+      alert("Fail to login");
+    }
+  };
 
 
   const [showPassword, setShowPassword] = useState(false);
