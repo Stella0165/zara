@@ -1,8 +1,15 @@
+// app/dashboard/user/page.tsx
+// Dashboard for user to make transactions
+
 "use client";
 
 import { useState } from "react";
 import "./dashboard_user.css";
+import { collection, addDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { getAuth } from "firebase/auth";
 
+// define the structure of a transaction
 type Transaction = {
   id: number,
   toName: string;
@@ -11,6 +18,7 @@ type Transaction = {
   status: "NORMAL" | "SUSPICIOUS" | "FLAGGED";
 };
 
+// define the function for the user dashboard
 export default function UserDashboard() {
 
   const [loading, setLoading] = useState(false);
@@ -22,9 +30,16 @@ export default function UserDashboard() {
   const [toPhone, setToPhone] = useState("");
   const [amount, setAmount] = useState("");
 
+  // create a state for transaction
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const handleSubmit = async () => {
+
+    // get the current user
+    const user = getAuth().currentUser;
+
+    // if user is null, return
+    if (!user) return;
 
     console.log("Button 'transfer' clicked");
     // validation for no input
@@ -102,6 +117,14 @@ export default function UserDashboard() {
       }
 
       if (status === "SUSPICIOUS") {
+        await addDoc(collection(db, "transactions"), {
+          userId: user?.uid,
+          toName,
+          toPhone,
+          amount: Number(amount),
+          status, // Normal / Suspicious/ Flagged
+          createdAt: serverTimestamp(),
+        });
         alert("Suspicious transaction detected, this transaction has been sent to admin for validation, we'll notify you once the validation completed.");
       }
 

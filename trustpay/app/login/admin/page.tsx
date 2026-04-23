@@ -23,27 +23,17 @@ export default function LoginPage() {
 
       const user = userCredential.user;
 
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        alert("User not found");
-        return;
-      }
-
-      const role = docSnap.data().role;
-
-      if (role === "admin") {
+      if (user.email === "admin@gmail.com") {
         router.push("/dashboard/admin");
       } else {
         router.push("/dashboard/user");
       }
 
     } catch (error) {
+      console.log(error);
       alert("Fail to login");
     }
   };
-
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -56,14 +46,13 @@ export default function LoginPage() {
           className="w-full h-full object-cover"
         />
       </div>
-      
       <div className="form-right">
         <div className="form">
-          
+
           <h1 className="title">WELCOME</h1>
           <p className="subtitle">Login with your details.</p>
 
-          <form className="flex flex-col gap-2">
+          <form className="flex flex-col gap-2" onSubmit={handleLogin}>
             <label htmlFor="email" className="text-sm font-medium block">
               Email
             </label>
@@ -78,7 +67,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center">
                 <input type="checkbox" className="w-4 h-4 accent-blue-600" />
-                  Remember me
+                Remember me
               </label>
             </div>
 
@@ -91,8 +80,8 @@ export default function LoginPage() {
                 id="password"
                 placeholder="Enter your password"
                 className="input-field"
-            />
-            <button
+              />
+              <button
                 type="button"
                 className="absolute right-2 top-1/3 -translate-y-1/2 text-gray-500"
                 onClick={() => setShowPassword(!showPassword)}
@@ -102,12 +91,12 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" className="btn-primary">
-                Login
+              Login
             </button>
           </form>
 
         </div>
-     </div>
+      </div>
 
     </div>
   );

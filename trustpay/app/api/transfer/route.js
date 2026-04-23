@@ -17,8 +17,8 @@ You are a financial fraud detection AI.
 
 Analyze this transaction:
 
-recipient_name: ${recipient_name}
-recipient_phone: ${recipient_phone}
+recipient_name: ${toName}
+recipient_phone: ${toPhone}
 amount: ${amount}
 flagged_database: ${JSON.stringify(flagged_database)}
 
