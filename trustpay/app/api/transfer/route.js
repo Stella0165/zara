@@ -1,10 +1,12 @@
+// app/api/transfer/route.js
+// API for transferring money
+// Connect with google ai studio for the prompt logic
+
 import { GoogleGenAI } from "@google/genai";
 
-const serviceAccount = 
 export async function POST(req) {
     try {
-        const { recipient_name, recipient_phone, amount, flagged_database } =
-            await req.json();
+        const { toName, toPhone, amount } = await req.json();
 
         const ai = new GoogleGenAI({
             apiKey: process.env.GEMINI_API_KEY,
@@ -44,9 +46,25 @@ Return ONLY valid JSON:
 
         const text = result.text;
 
+        let parsed;
+
+        try {
+            parsed = JSON.parse(text);
+        } catch {
+            return Response.json({
+                success: false,
+                error: "Invalid AI response format",
+            });
+        }
+
         return Response.json({
             success: true,
-            data: text,
+            status: parsed.status,
+            risk_score: parsed.risk_score,
+            reason: parsed.reason,
+            action: parsed.action,
+            admin_suggestion: parsed.admin_suggestion,
+            confidence: parsed.confidence,
         });
 
     } catch (error) {
