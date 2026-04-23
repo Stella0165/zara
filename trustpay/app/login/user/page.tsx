@@ -10,20 +10,20 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async (e: any) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const form = e.currentTarget;
+    const form = e.currentTarget;
 
-  const email = form.email.value;
-  const password = form.password.value;
+    const email = form.email.value;
+    const password = form.password.value;
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    router.push("/dashboard/user");
-  } catch (error) {
-    alert("Fail to login");
-  }
-};
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/dashboard/user");
+    } catch (error) {
+      alert("Fail to login");
+    }
+  };
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -37,10 +37,10 @@ export default function LoginPage() {
           className="w-full h-full object-cover"
         />
       </div>
-      
+
       <div className="form-right">
         <div className="form">
-          
+
           <h1 className="title">WELCOME</h1>
           <p className="subtitle">Login with your details.</p>
 
@@ -60,7 +60,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center">
                 <input type="checkbox" className="w-4 h-4 accent-blue-600" />
-                  Remember me
+                Remember me
               </label>
             </div>
 
@@ -74,8 +74,8 @@ export default function LoginPage() {
                 id="password"
                 placeholder="Enter your password"
                 className="input-field"
-            />
-            <button
+              />
+              <button
                 type="button"
                 className="absolute right-2 top-1/3 -translate-y-1/2 text-gray-500"
                 onClick={() => setShowPassword(!showPassword)}
@@ -97,7 +97,7 @@ export default function LoginPage() {
           </p>
 
         </div>
-     </div>
+      </div>
 
     </div>
   );
