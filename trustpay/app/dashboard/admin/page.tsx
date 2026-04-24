@@ -10,7 +10,11 @@ type Transaction = {
   toName: string;
   toPhone: string;
   amount: number;
-  status: "NORMAL" | "SUSPICIOUS" | "FLAGGED";
+  status: "NORMAL" | "SUSPICIOUS" | "FRAUD";
+  risk_score?: number;
+  reason?: string;
+  confidence?: number;
+  admin_suggestion?: string;
 };
 
 export default function AdminDashboard() {
@@ -22,7 +26,7 @@ export default function AdminDashboard() {
       try {
         const q = query(
           collection(db, "transactions"),
-          where("status", "==", "SUSPICIOUS")
+          where("status", "in", ["SUSPICIOUS", "FLAGGED"])
         );
 
         const snapshot = await getDocs(q);
@@ -36,8 +40,10 @@ export default function AdminDashboard() {
             toPhone: docData.toPhone,
             amount: docData.amount,
             status: docData.status,
+            reason: docData.reason,
+            confidence: docData.confidence,
           };
-        });
+        })
 
         setTransactions(data);
       } catch (err) {
@@ -94,21 +100,29 @@ export default function AdminDashboard() {
                 {tx.status}
               </p>
 
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => handleApprove(tx.id)}
-                  className="bg-green-600 text-white px-3 py-1 rounded"
-                >
-                  Approve
-                </button>
+              {tx.status !== "FRAUD" && (
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => handleApprove(tx.id)}
+                    className="bg-green-600 text-white px-3 py-1 rounded"
+                  >
+                    Approve
+                  </button>
 
-                <button
-                  onClick={() => handleReject(tx.id)}
-                  className="bg-red-600 text-white px-3 py-1 rounded"
-                >
-                  Flagged
-                </button>
-              </div>
+                  {tx.status === "NORMAL" && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Your transaction number has been sent to email, please check.
+                    </p>
+                  )}
+
+                  <button
+                    onClick={() => handleReject(tx.id)}
+                    className="bg-red-600 text-white px-3 py-1 rounded"
+                  >
+                    Flagged
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

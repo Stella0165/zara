@@ -5,6 +5,8 @@ An AI-powered banking security system that detects fraudulent transactions using
 
 This project is built for **Track 5: Secure Digital (FinTech & Security)**, focusing on preventing digital fraud and improving cybersecurity as well as data privacy in financial transactions.
 
+Gemini is used as a fraud reasoning engine that evaluates transaction risk based on behavioral patterns, amount anomalies and recipient metadata
+
 ---
 
 ## Tech Stack
@@ -40,6 +42,11 @@ Screenshots are available in `/docs/aistudio/screenshots`.
 
 ## System Flow
 User Sign In → Login → Transaction Input → Gemini AI Analysis → Risk Score → System Action → Firebase Update → Admin Review (if HOLD)
+
+---
+
+## Architecture diagram
+User → Next.js → Firebase Auth → API Route → Gemini AI → Firestore → Admin Dashboard
 
 ---
 

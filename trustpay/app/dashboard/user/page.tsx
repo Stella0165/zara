@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./dashboard_user.css";
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -11,7 +11,7 @@ import { getAuth } from "firebase/auth";
 
 // define the structure of a transaction
 type Transaction = {
-  id: number,
+  id: string,
   toName: string;
   toPhone: string;
   amount: number;
@@ -32,6 +32,33 @@ export default function UserDashboard() {
 
   // create a state for transaction
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const user = getAuth().currentUser;
+      if (!user) return;
+
+      try {
+        const q = query(
+          collection(db, "transactions"),
+          where("userId", "==", user.uid)
+        );
+
+        const snapshot = await getDocs(q);
+
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Transaction[];
+
+        setTransactions(data);
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
 
   const handleSubmit = async () => {
 
@@ -101,35 +128,29 @@ export default function UserDashboard() {
               ? "FLAGGED"
               : "SUSPICIOUS";
 
-      setTransactions((prev) => [
-        {
-          id: Date.now(),
-          toName,
-          toPhone,
-          amount: Number(amount),
-          status,
-        },
-        ...prev,
-      ]);
-
       if (status === "FLAGGED") {
         alert("Flagged account detected");
       }
 
       if (status === "SUSPICIOUS") {
         await addDoc(collection(db, "transactions"), {
-          userId: user?.uid,
-          toName,
-          toPhone,
-          amount: Number(amount),
-          status, // Normal / Suspicious/ Flagged
-          createdAt: serverTimestamp(),
-        });
+        userId: user.uid,
+        toName,
+        toPhone,
+        amount: Number(amount),
+        status,
+
+        reason: result.reason ?? "No reason provided",
+        action: result.action ?? "ON HOLD",
+        confidence: result.confidence ?? 100,
+
+        createdAt: serverTimestamp(),
+      });
         alert("Suspicious transaction detected, this transaction has been sent to admin for validation, we'll notify you once the validation completed.");
       }
 
       if (status === "NORMAL") {
-        alert("Transaction Completed");
+        alert("Validation successfil. Your transaction number has been sent to email, please check.");
       }
 
       setToName("");

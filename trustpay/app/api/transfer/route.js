@@ -3,6 +3,28 @@
 // Connect with google ai studio for the prompt logic
 
 import { GoogleGenAI } from "@google/genai";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+const db = getFirestore();
+
+const flaggedQuery = query(
+    collection(db, "transactions"),
+    where("toPhone", "==", toPhone),
+    where("status", "==", "FLAGGED")
+);
+
+const flaggedSnap = await getDocs(flaggedQuery);
+
+if (!flaggedSnap.empty) {
+    return Response.json({
+        success: false,
+        status: "FLAGGED",
+        action: "REJECT",
+        reason: "Recipient is already flagged as fraud",
+        blocked: true,
+    });
+}
 
 export async function POST(req) {
     try {
