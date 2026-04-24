@@ -7,16 +7,21 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 export default function LoginPage() {
+  // redirect to user dashboard if user already logged in
   const router = useRouter();
 
+  // submit login
   const handleLogin = async (e: any) => {
     e.preventDefault();
 
+    // get data from form
     const form = e.currentTarget;
 
+    // get email and password
     const email = form.email.value;
     const password = form.password.value;
 
+    // try login
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/dashboard/user");
@@ -25,8 +30,10 @@ export default function LoginPage() {
     }
   };
 
+  // show or hide password
   const [showPassword, setShowPassword] = useState(false);
 
+  // form interface
   return (
     <div className="page-container">
 

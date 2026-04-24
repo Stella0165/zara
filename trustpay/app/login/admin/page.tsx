@@ -1,5 +1,5 @@
 "use client"
-import Link from "next/link";
+
 import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import { db } from "@/lib/firebase";
 export default function LoginPage() {
   const router = useRouter();
 
+  // submit login
   const handleLogin = async (e: any) => {
     e.preventDefault();
 
@@ -19,8 +20,9 @@ export default function LoginPage() {
     const password = form.password.value;
 
     try {
+      // send to firebase for user credential verification
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
+      // get the current user
       const user = userCredential.user;
 
       if (user.email === "admin@gmail.com") {
@@ -37,6 +39,7 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  // form interface
   return (
     <div className="page-container">
       <div className="image-section">
@@ -84,6 +87,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="absolute right-2 top-1/3 -translate-y-1/2 text-gray-500"
+                // show or hide password
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}

@@ -33,11 +33,14 @@ export default function UserDashboard() {
   // create a state for transaction
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
+  // fetch transactions
   useEffect(() => {
     const fetchTransactions = async () => {
+      // get the current user
       const user = getAuth().currentUser;
       if (!user) return;
 
+      // query for transactions that are normal, suspicious or flagged
       try {
         const q = query(
           collection(db, "transactions"),
@@ -46,12 +49,23 @@ export default function UserDashboard() {
 
         const snapshot = await getDocs(q);
 
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Transaction[];
+        // convert to type transaction
+        const data: Transaction[] = snapshot.docs.map((docSnap) => {
+        //  get the document data
+        const docData = docSnap.data();
 
-        setTransactions(data);
+        // push data to type transaction
+        return {
+          id: docSnap.id,
+          toName: docData.toName,
+          toPhone: docData.toPhone,
+          amount: docData.amount,
+          status: docData.status,
+        };
+      });
+
+      // update transactions
+      setTransactions(data);
       } catch (err) {
         console.error("Fetch error:", err);
       }
@@ -60,6 +74,7 @@ export default function UserDashboard() {
     fetchTransactions();
   }, []);
 
+  // submit transaction
   const handleSubmit = async () => {
 
     // get the current user
@@ -86,16 +101,18 @@ export default function UserDashboard() {
       return;
     }
 
+    // try submit transaction
     try {
-
       setShowForm(false);
       setLoading(true);
       setLoadingMessage("Processing transaction...");
 
+      // pause for 0.4 sec
       await new Promise((r) => setTimeout(r, 400));
 
       setLoadingMessage("AI is analyzing transaction risk...");
 
+      // send to api transfer
       const res = await fetch("/api/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,6 +128,7 @@ export default function UserDashboard() {
       setLoading(false);
       setLoadingMessage("");
 
+      // if api error, alert
       if (!res.ok) {
         console.error("API ERROR:", result);
         alert(result.error || "Server error occurred");
@@ -119,10 +137,16 @@ export default function UserDashboard() {
 
       console.log("RESULT:", result);
 
+      // if flagged, alert
+      if (result.blocked === true) {
+        alert("Transaction rejected: recipient is flagged before.");
+        return;
+      }
+
       const status =
-        result.status === "approved"
+        result.status === "NORMAL"
           ? "NORMAL"
-          : result.status === "pending"
+          : result.status === "FLAGGED"
             ? "SUSPICIOUS"
             : result.status === "rejected"
               ? "FLAGGED"
@@ -132,23 +156,25 @@ export default function UserDashboard() {
         alert("Flagged account detected");
       }
 
+      // if suspicious, save to db
       if (status === "SUSPICIOUS") {
         await addDoc(collection(db, "transactions"), {
-        userId: user.uid,
-        toName,
-        toPhone,
-        amount: Number(amount),
-        status,
+          userId: user.uid,
+          toName,
+          toPhone,
+          amount: Number(amount),
+          status,
 
-        reason: result.reason ?? "No reason provided",
-        action: result.action ?? "ON HOLD",
-        confidence: result.confidence ?? 100,
+          reason: result.reason ?? "No reason provided",
+          action: result.action ?? "ON HOLD",
+          confidence: result.confidence ?? 100,
 
-        createdAt: serverTimestamp(),
-      });
-        alert("Suspicious transaction detected, this transaction has been sent to admin for validation, we'll notify you once the validation completed.");
+          createdAt: serverTimestamp(),
+        });
+        alert("Suspicious transaction detected, this transaction has been sent to admin for validation, we'll send transaction number to you through email once validation completed.");
       }
 
+      // if normal, alert
       if (status === "NORMAL") {
         alert("Validation successfil. Your transaction number has been sent to email, please check.");
       }
@@ -205,14 +231,12 @@ export default function UserDashboard() {
               >
                 {tx.status}
               </p>
-
             </div>
           ))}
-
         </div>
       )}
 
-      {/* form */}
+      {/* transaction request form */}
       {showForm && (
         <div className="modal-bg">
           <div className="modal-box">

@@ -7,21 +7,27 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { setDoc, doc } from "firebase/firestore";
 
+// user signup page
 export default function SignupPage() {
+  // show or hide password
   const [showPassword, setShowPassword] = useState(false);
+  // submit signup
   const handleSignup = async (e: any) => {
     e.preventDefault();
 
+    // get data from form
     const form = e.currentTarget;
 
+    // get email and password
     const email = form.email.value;
     const password = form.password.value;
 
     try {
+      // send to firebase for user credential verification
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
+      // get the current user
       const user = userCredential.user;
-
+      // save user to firestore database
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         email: email,

@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 
+// landing page
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 px-6 text-center">
 
+      {/* Welcome title */}
       <h1 className="text-4xl font-bold text-gray-800">
         Welcome to TrustPay
       </h1>
@@ -15,6 +17,7 @@ export default function LandingPage() {
         An AI-powered payment system that helps avoids scam during transaction.
       </p>
 
+      {/* buttons */}
       <div className="flex gap-4 mt-8">
 
         <Link href="/signup">
@@ -31,6 +34,7 @@ export default function LandingPage() {
 
       </div>
 
+      {/* admin page link */}
       <div className="mt-10 text-sm text-gray-500">
         Are you an admin?{" "}
         <Link href="/login/admin" className="text-blue-500 hover:underline">

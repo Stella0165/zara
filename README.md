@@ -52,6 +52,7 @@ User → Next.js → Firebase Auth → API Route → Gemini AI → Firestore →
 
 ## How to Run Project
 ```bash
+cd trustpay
 npm install
 npm install react-icons
 npm install firebase

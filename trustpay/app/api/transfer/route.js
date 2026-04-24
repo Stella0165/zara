@@ -6,34 +6,32 @@ import { GoogleGenAI } from "@google/genai";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-const db = getFirestore();
-
-const flaggedQuery = query(
-    collection(db, "transactions"),
-    where("toPhone", "==", toPhone),
-    where("status", "==", "FLAGGED")
-);
-
-const flaggedSnap = await getDocs(flaggedQuery);
-
-if (!flaggedSnap.empty) {
-    return Response.json({
-        success: false,
-        status: "FLAGGED",
-        action: "REJECT",
-        reason: "Recipient is already flagged as fraud",
-        blocked: true,
-    });
-}
-
 export async function POST(req) {
     try {
+        // get data from user request
         const { toName, toPhone, amount } = await req.json();
 
-        const ai = new GoogleGenAI({
-            apiKey: process.env.GEMINI_API_KEY,
-        });
+        // get transactions that are flagged
+        const flaggedQuery = query(
+            collection(db, "transactions"),
+            where("toPhone", "==", toPhone),
+            where("status", "==", "FLAGGED")
+        );
 
+        const flaggedSnap = await getDocs(flaggedQuery);
+
+        // if the recipient is flagged, reject the transaction
+        if (!flaggedSnap.empty) {
+            return Response.json({
+                success: false,
+                status: "FLAGGED",
+                action: "REJECT",
+                reason: "This recipient is already flagged as fraud",
+                blocked: true,
+            });
+        }
+
+        // prompt for AI
         const prompt = `
 You are a financial fraud detection AI.
 
@@ -45,14 +43,14 @@ amount: ${amount}
 flagged_database: ${JSON.stringify(flagged_database)}
 
 Rules:
-- If recipient exists in flagged_database → FRAUD
+- If recipient exists in flagged_database → FLAGGED
 - Large amount increases risk
 - Invalid phone format increases risk
 - First-time transfer increases risk
 
 Return ONLY valid JSON:
 {
-  "status": "NORMAL | SUSPICIOUS | FRAUD",
+  "status": "NORMAL | SUSPICIOUS | FLAGGED",
   "risk_score": number,
   "reason": string,
   "action": "APPROVE | HOLD | REJECT",
@@ -61,6 +59,7 @@ Return ONLY valid JSON:
 }
 `;
 
+        // generate content from Google AI Studio prompt
         const result = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
             contents: [{ role: "user", parts: [{ text: prompt }] }],
